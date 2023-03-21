@@ -1,1 +1,1 @@
-# shooping-gql
+# shoping-gql
