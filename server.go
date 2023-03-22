@@ -7,7 +7,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/fajarabdillahfn/shoping-gql/graph"
+	"github.com/fajarabdillahfn/shoping-gql/cmd/graph"
 )
 
 const defaultPort = "8080"
@@ -18,7 +18,9 @@ func main() {
 		port = defaultPort
 	}
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+	executableSchema := graph.Initialize()
+
+	srv := handler.NewDefaultServer(executableSchema)
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
