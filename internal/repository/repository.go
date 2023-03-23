@@ -8,4 +8,5 @@ import (
 
 type Repository interface {
 	GetBySku(ctx context.Context) (*model.Product, error)
+	UpdateQuantity(ctx context.Context, newQuantity int) error
 }
