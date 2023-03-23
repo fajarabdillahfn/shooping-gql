@@ -133,7 +133,7 @@ func (u *useCase) calculatePromotion3(ctx context.Context, productsBought map[st
 			minQty = 0
 		}
 		cart.TotalPrice -= float64(minQty) * rasPi.Price
-	} else {
+	} else if newQtyRasPi > 0{
 		rasPiProduct := model.CheckoutProduct{
 			Sku:        rasPi.Sku,
 			Name:       rasPi.Name,
