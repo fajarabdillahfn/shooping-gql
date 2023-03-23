@@ -8,14 +8,16 @@ import (
 
 // Checkout is the resolver for the checkout field.
 func (r *mutationResolver) Checkout(ctx context.Context, input []*model.ProductInput) (*model.Cart, error) {
-	return &model.Cart{
-		Products: []*model.Product{
-			{Sku: "Hello", Name: "World", Price: 12, Quantity: 23},
-		},
-	}, nil
+	productsBought := map[string]int{}
+
+	for _, data := range input {
+		productsBought[data.Sku]++
+	}
+
+	cart, err := r.ShopUC.Checkout(ctx, productsBought)
+	if err != nil {
+		return nil, err
+	}
+
+	return cart, nil
 }
-
-// Mutation returns graph.MutationResolver implementation.
-func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
-
-type mutationResolver struct{ *Resolver }

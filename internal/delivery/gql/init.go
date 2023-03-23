@@ -12,3 +12,7 @@ func NewShopGQL(shopUC uShop.UseCase) *Resolver {
 	}
 }
 
+type mutationResolver struct{ *Resolver }
+
+// Mutation returns graph.MutationResolver implementation.
+func (r *Resolver) Mutation() MutationResolver { return &mutationResolver{r} }
