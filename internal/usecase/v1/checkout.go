@@ -9,6 +9,8 @@ import (
 	"github.com/fajarabdillahfn/shoping-gql/internal/model"
 )
 
+var qtyLeft = map[string]int{}
+
 func (u *useCase) Checkout(ctx context.Context, productsBought map[string]int) (*model.Cart, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*2000)
 	defer cancel()
@@ -17,11 +19,10 @@ func (u *useCase) Checkout(ctx context.Context, productsBought map[string]int) (
 		googleHomeSku = "120P90"
 		alexaSku      = "A304SD"
 		macBookSku    = "43N23P"
+		cart          = model.Cart{
+			TotalPrice: 0,
+		}
 	)
-
-	cart := model.Cart{
-		TotalPrice: 0,
-	}
 
 	for sku, qty := range productsBought {
 		ctxSku := context.WithValue(ctx, "sku", sku)
@@ -57,12 +58,23 @@ func (u *useCase) Checkout(ctx context.Context, productsBought map[string]int) (
 
 		cart.Products = append(cart.Products, &checkoutProduct)
 		cart.TotalPrice += checkoutProduct.TotalPrice
+
+		qtyLeft[sku] = product.Quantity - qty
 	}
 
 	// PROMOTION 1: Each sale of a MacBook Pro comes with a free Raspberry Pi B
 	_, buyMacbookPro := productsBought[macBookSku]
 	if buyMacbookPro {
 		err := u.calculatePromotion3(ctx, productsBought, &cart)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	for sku, qty := range qtyLeft {
+		ctxSku := context.WithValue(ctx, "sku", sku)
+
+		err := u.ShopRepo.UpdateQuantity(ctxSku, qty)
 		if err != nil {
 			return nil, err
 		}
@@ -116,6 +128,11 @@ func (u *useCase) calculatePromotion3(ctx context.Context, productsBought map[st
 				break
 			}
 		}
+		minQty := newQtyRasPi - qtyMacBook
+		if minQty < 0 {
+			minQty = 0
+		}
+		cart.TotalPrice -= float64(minQty) * rasPi.Price
 	} else {
 		rasPiProduct := model.CheckoutProduct{
 			Sku:        rasPi.Sku,
@@ -126,11 +143,9 @@ func (u *useCase) calculatePromotion3(ctx context.Context, productsBought map[st
 		}
 
 		cart.Products = append(cart.Products, &rasPiProduct)
-
-		cart.TotalPrice += rasPiProduct.TotalPrice
 	}
 
-	cart.TotalPrice -= float64(qtyMacBook) * rasPi.Price
+	qtyLeft[rasPiSku] = rasPi.Quantity - newQtyRasPi
 
 	return nil
 }
