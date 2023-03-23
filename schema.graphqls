@@ -6,7 +6,15 @@ type Product {
 }
 
 type Cart {
-    products: [Product!]!
+    products: [CheckoutProduct!]!
+    total_price: Float!
+}
+
+type CheckoutProduct {
+    sku: String!
+    name: String!
+    price: Float!
+    quantity: Int!
     total_price: Float!
 }
 
