@@ -71,7 +71,10 @@ func (u *useCase) Checkout(ctx context.Context, productsBought map[string]int) (
 		qtyRasPi, buyRasPi := productsBought[rasPiSku]
 		qtyMacBook, _ := productsBought[macBookSku]
 
-		var newQtyRasPi int
+		var (
+			newQtyRasPi int
+			newPrice    float64
+		)
 
 		ctxSku := context.WithValue(ctx, "sku", rasPiSku)
 		rasPi, err := u.ShopRepo.GetBySku(ctxSku)
@@ -89,24 +92,30 @@ func (u *useCase) Checkout(ctx context.Context, productsBought map[string]int) (
 			newQtyRasPi = qtyRasPi
 		}
 
+		if newQtyRasPi-qtyMacBook < 0 {
+			newPrice = 0
+		} else {
+			newPrice = float64(newQtyRasPi-qtyMacBook) * rasPi.Price
+		}
+
 		if buyRasPi {
 			for i, productCart := range cart.Products {
 				if productCart.Sku == rasPiSku {
 					cart.Products[i].Quantity = newQtyRasPi
-					cart.Products[i].TotalPrice = float64(newQtyRasPi - qtyMacBook) * rasPi.Price
+					cart.Products[i].TotalPrice = newPrice
 					break
 				}
 			}
 		} else {
 			rasPiProduct := model.CheckoutProduct{
-				Sku:      rasPi.Sku,
-				Name:     rasPi.Name,
-				Price:    rasPi.Price,
-				Quantity: newQtyRasPi,
-				TotalPrice: float64(newQtyRasPi - qtyMacBook) * rasPi.Price,
+				Sku:        rasPi.Sku,
+				Name:       rasPi.Name,
+				Price:      rasPi.Price,
+				Quantity:   newQtyRasPi,
+				TotalPrice: newPrice,
 			}
-			
-			cart.Products = append(cart.Products,&rasPiProduct)
+
+			cart.Products = append(cart.Products, &rasPiProduct)
 
 			cart.TotalPrice += rasPiProduct.TotalPrice
 		}
