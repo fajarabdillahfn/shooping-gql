@@ -14,7 +14,7 @@ type CheckoutProduct struct {
 }
 
 type Product struct {
-	Sku      string  `json:"sku"`
+	Sku      string  `json:"sku" gorm:"primaryKey"`
 	Name     string  `json:"name"`
 	Price    float64 `json:"price"`
 	Quantity int     `json:"quantity"`
