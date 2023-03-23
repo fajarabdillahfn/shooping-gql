@@ -17,8 +17,6 @@ func (u *useCase) Checkout(ctx context.Context, productsBought map[string]int) (
 		googleHomeSku = "120P90"
 		alexaSku      = "A304SD"
 		macBookSku    = "43N23P"
-		rasPiSku      = "234234"
-		isPromotion3  = false
 	)
 
 	cart := model.Cart{
@@ -44,11 +42,6 @@ func (u *useCase) Checkout(ctx context.Context, productsBought map[string]int) (
 		}
 
 		switch {
-		// PROMOTION 1: Each sale of a MacBook Pro comes with a free Raspberry Pi B
-		case sku == macBookSku:
-			isPromotion3 = true
-			checkoutProduct.TotalPrice = product.Price * float64(qty)
-
 		// PROMOTION 2: Buy 3 Google Homes for the price of 2
 		case sku == googleHomeSku && qty >= 3:
 			disc := math.Floor(3 / float64(qty))
@@ -67,61 +60,77 @@ func (u *useCase) Checkout(ctx context.Context, productsBought map[string]int) (
 	}
 
 	// PROMOTION 1: Each sale of a MacBook Pro comes with a free Raspberry Pi B
-	if isPromotion3 {
-		qtyRasPi, buyRasPi := productsBought[rasPiSku]
-		qtyMacBook, _ := productsBought[macBookSku]
-
-		var (
-			newQtyRasPi int
-			newPrice    float64
-		)
-
-		ctxSku := context.WithValue(ctx, "sku", rasPiSku)
-		rasPi, err := u.ShopRepo.GetBySku(ctxSku)
+	_, buyMacbookPro := productsBought[macBookSku]
+	if buyMacbookPro {
+		err := u.calculatePromotion3(ctx, productsBought, &cart)
 		if err != nil {
 			return nil, err
 		}
-
-		if qtyMacBook > qtyRasPi {
-			if rasPi.Quantity > qtyMacBook {
-				newQtyRasPi = qtyMacBook
-			} else {
-				newQtyRasPi = rasPi.Quantity
-			}
-		} else {
-			newQtyRasPi = qtyRasPi
-		}
-
-		if newQtyRasPi-qtyMacBook < 0 {
-			newPrice = 0
-		} else {
-			newPrice = float64(newQtyRasPi-qtyMacBook) * rasPi.Price
-		}
-
-		if buyRasPi {
-			for i, productCart := range cart.Products {
-				if productCart.Sku == rasPiSku {
-					cart.Products[i].Quantity = newQtyRasPi
-					cart.Products[i].TotalPrice = newPrice
-					break
-				}
-			}
-		} else {
-			rasPiProduct := model.CheckoutProduct{
-				Sku:        rasPi.Sku,
-				Name:       rasPi.Name,
-				Price:      rasPi.Price,
-				Quantity:   newQtyRasPi,
-				TotalPrice: newPrice,
-			}
-
-			cart.Products = append(cart.Products, &rasPiProduct)
-
-			cart.TotalPrice += rasPiProduct.TotalPrice
-		}
-
-		cart.TotalPrice -= float64(qtyMacBook) * rasPi.Price
 	}
 
 	return &cart, nil
+}
+
+// PROMOTION 1: Each sale of a MacBook Pro comes with a free Raspberry Pi B
+func (u *useCase) calculatePromotion3(ctx context.Context, productsBought map[string]int, cart *model.Cart) error {
+	var (
+		rasPiSku   = "234234"
+		macBookSku = "43N23P"
+	)
+
+	qtyRasPi, buyRasPi := productsBought[rasPiSku]
+	qtyMacBook, _ := productsBought[macBookSku]
+
+	var (
+		newQtyRasPi int
+		newPrice    float64
+	)
+
+	ctxSku := context.WithValue(ctx, "sku", rasPiSku)
+	rasPi, err := u.ShopRepo.GetBySku(ctxSku)
+	if err != nil {
+		return err
+	}
+
+	if qtyMacBook > qtyRasPi {
+		if rasPi.Quantity > qtyMacBook {
+			newQtyRasPi = qtyMacBook
+		} else {
+			newQtyRasPi = rasPi.Quantity
+		}
+	} else {
+		newQtyRasPi = qtyRasPi
+	}
+
+	if newQtyRasPi-qtyMacBook < 0 {
+		newPrice = 0
+	} else {
+		newPrice = float64(newQtyRasPi-qtyMacBook) * rasPi.Price
+	}
+
+	if buyRasPi {
+		for i, productCart := range cart.Products {
+			if productCart.Sku == rasPiSku {
+				cart.Products[i].Quantity = newQtyRasPi
+				cart.Products[i].TotalPrice = newPrice
+				break
+			}
+		}
+	} else {
+		rasPiProduct := model.CheckoutProduct{
+			Sku:        rasPi.Sku,
+			Name:       rasPi.Name,
+			Price:      rasPi.Price,
+			Quantity:   newQtyRasPi,
+			TotalPrice: newPrice,
+		}
+
+		cart.Products = append(cart.Products, &rasPiProduct)
+
+		cart.TotalPrice += rasPiProduct.TotalPrice
+	}
+
+	cart.TotalPrice -= float64(qtyMacBook) * rasPi.Price
+
+	return nil
 }
