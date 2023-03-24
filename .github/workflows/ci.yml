@@ -35,9 +35,6 @@ jobs:
 
     - name: Run golint
       run: golint ./...
-      
-    - name: Build
-      run: go build -v ./...
 
     - name: Test
       run: go test -v ./...
