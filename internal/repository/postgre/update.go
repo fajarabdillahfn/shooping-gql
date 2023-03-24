@@ -6,13 +6,13 @@ import (
 	"github.com/fajarabdillahfn/shoping-gql/internal/model"
 )
 
-func (r *repository) UpdateQuantity(ctx context.Context, newQuantity int) error {
+func (r *repository) UpdateQuantity(ctx context.Context, newQuantity uint) error {
 	sku := ctx.Value("sku")
 
 	res := r.conn.WithContext(ctx).
-	Model(&model.Product{}).
-	Where("sku = ?", sku).
-	Update("quantity", newQuantity)
+		Model(&model.Product{}).
+		Where("sku = ?", sku).
+		Update("quantity", newQuantity)
 
 	if res.Error != nil {
 		return res.Error
