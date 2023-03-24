@@ -74,7 +74,7 @@ func (u *useCase) Checkout(ctx context.Context, productsBought map[string]int) (
 	for sku, qty := range qtyLeft {
 		ctxSku := context.WithValue(ctx, "sku", sku)
 
-		err := u.ShopRepo.UpdateQuantity(ctxSku, qty)
+		err := u.ShopRepo.UpdateQuantity(ctxSku, uint(qty))
 		if err != nil {
 			return nil, err
 		}
@@ -131,6 +131,8 @@ func (u *useCase) calculatePromotion3(ctx context.Context, productsBought map[st
 		minQty := newQtyRasPi - qtyMacBook
 		if minQty < 0 {
 			minQty = 0
+		} else if minQty == 0 {
+			minQty = qtyRasPi
 		}
 		cart.TotalPrice -= float64(minQty) * rasPi.Price
 	} else if newQtyRasPi > 0{
