@@ -303,7 +303,7 @@ func Test_checkout_MacBookPro(t *testing.T) {
 	rMock := &rShop.RepositoryMock{
 		GetBySkuFunc: func(ctx context.Context) (*model.Product, error) {
 			var product *model.Product
-			sku := ctx.Value("sku")
+			sku := ctx.Value(skuKey)
 
 			switch sku {
 			case "43N23P":
@@ -498,7 +498,7 @@ func Test_checkout_MultipleProduct(t *testing.T) {
 	rMock := &rShop.RepositoryMock{
 		GetBySkuFunc: func(ctx context.Context) (*model.Product, error) {
 			var product *model.Product
-			sku := ctx.Value("sku")
+			sku := ctx.Value(skuKey)
 
 			switch sku {
 			case "120P90":
