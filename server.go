@@ -25,6 +25,6 @@ func main() {
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
 
-	log.Printf("start server on port :%s", port)
+	log.Printf("start gql server on port :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
