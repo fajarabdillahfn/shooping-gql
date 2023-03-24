@@ -95,7 +95,7 @@ func (u *useCase) calculatePromotion3(ctx context.Context, productsBought map[st
 	)
 
 	qtyRasPi, buyRasPi := productsBought[rasPiSku]
-	qtyMacBook, _ := productsBought[macBookSku]
+	qtyMacBook := productsBought[macBookSku]
 
 	var (
 		newQtyRasPi int
