@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/fajarabdillahfn/shoping-gql/internal/model"
 	rShop "github.com/fajarabdillahfn/shoping-gql/internal/repository"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -18,7 +17,6 @@ type Suite struct {
 	DB         *gorm.DB
 	mock       sqlmock.Sqlmock
 	repository rShop.Repository
-	product    *model.Product
 }
 
 func (s *Suite) SetupSuite() {
