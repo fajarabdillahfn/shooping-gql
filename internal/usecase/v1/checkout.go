@@ -9,10 +9,6 @@ import (
 	"github.com/fajarabdillahfn/shoping-gql/internal/model"
 )
 
-type key string
-
-const skuKey key = "sku"
-
 var qtyLeft = map[string]int{}
 
 func (u *useCase) Checkout(ctx context.Context, productsBought map[string]int) (*model.Cart, error) {
@@ -29,7 +25,7 @@ func (u *useCase) Checkout(ctx context.Context, productsBought map[string]int) (
 	)
 
 	for sku, qty := range productsBought {
-		ctxSku := context.WithValue(ctx, skuKey, sku)
+		ctxSku := context.WithValue(ctx, "sku", sku)
 		product, err := u.ShopRepo.GetBySku(ctxSku)
 		if err != nil {
 			return nil, err
@@ -76,7 +72,7 @@ func (u *useCase) Checkout(ctx context.Context, productsBought map[string]int) (
 	}
 
 	for sku, qty := range qtyLeft {
-		ctxSku := context.WithValue(ctx, skuKey, sku)
+		ctxSku := context.WithValue(ctx, "sku", sku)
 
 		err := u.ShopRepo.UpdateQuantity(ctxSku, uint(qty))
 		if err != nil {
@@ -102,7 +98,7 @@ func (u *useCase) calculatePromotion3(ctx context.Context, productsBought map[st
 		newPrice    float64
 	)
 
-	ctxSku := context.WithValue(ctx, skuKey, rasPiSku)
+	ctxSku := context.WithValue(ctx, "sku", rasPiSku)
 	rasPi, err := u.ShopRepo.GetBySku(ctxSku)
 	if err != nil {
 		return err

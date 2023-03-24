@@ -18,7 +18,7 @@ func (s *Suite) Test_repository_UpdateQuantity() {
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	s.mock.ExpectCommit()
 
-	ctxSku := context.WithValue(context.Background(), skuKey, sku)
+	ctxSku := context.WithValue(context.Background(), "sku", sku)
 	err := s.repository.UpdateQuantity(ctxSku, newQty)
 
 	require.NoError(s.T(), err, err)
